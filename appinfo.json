@@ -1,0 +1,35 @@
+{
+  "uuid": "3c647382-ac08-4add-8f9a-e8db492535aa",
+  "shortName": "Smartthings Remote",
+  "longName": "Smartthings Remote",
+  "companyName": "Eran Globen",
+  "versionCode": 1,
+  "versionLabel": "1.0.0",
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+    "toggle": 0,
+    "refresh": 1
+  },
+  "resources": {
+    "media": [
+		{
+			"menuIcon": "true",
+			"type": "png",
+			"name": "IMAGE_MENU_ICON",
+			"file": "img/circle.png"
+		},
+		{
+      "type": "png",
+      "name": "SWITCH_OFF",
+      "file": "img/off.png"
+    },
+    {
+      "type": "png",
+      "name": "SWITCH_ON",
+      "file": "img/on.png"
+    }
+		]
+  }
+}
