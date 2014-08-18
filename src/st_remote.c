@@ -7,15 +7,18 @@ static AppSync sync;
 static uint8_t sync_buffer[64];
 
 // outgoing commands
-enum {
+typedef enum {
 	CMD_KEY_TOGGLE,
 	CMD_KEY_REFRESH,
-};
+  CMD_KEY_ACTIVATE,
+} DeviceCommands;
 static GBitmap *switch_icons[2];
+static GBitmap *phrase_icon;
 
 typedef enum {
 	TYPE_SWITCH = 0x0,
 	TYPE_LOCK = 0x1,
+  TYPE_PHRASE = 0x2,
 } DeviceType;
 
 enum DeviceKey {
@@ -92,7 +95,11 @@ static void draw_row_callback(GContext* ctx, Layer *cell_layer, MenuIndex *cell_
   if ((device = get_device_at_index(index)) == NULL) {
     return;
   }
-  menu_cell_basic_draw(ctx, cell_layer, device->label, NULL, switch_icons[device->state]);
+  if (device->type == TYPE_PHRASE) {
+    menu_cell_basic_draw(ctx, cell_layer, device->label, NULL, phrase_icon);    
+  } else {
+    menu_cell_basic_draw(ctx, cell_layer, device->label, NULL, switch_icons[device->state]);
+  }
 }
 
 static uint16_t get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *data) {
@@ -110,7 +117,13 @@ static void select_callback(MenuLayer *menu_layer, MenuIndex *cell_index, void *
   }
 	// toggle device
   // todo_list_toggle_state(index);
-  if (dict_write_cstring(iter, CMD_KEY_TOGGLE, get_device_at_index(index)->id) != DICT_OK) {
+  DeviceCommands cmd;
+  if (get_device_at_index(index)->type == TYPE_PHRASE) {
+    cmd = CMD_KEY_ACTIVATE;
+  } else {
+    cmd = CMD_KEY_TOGGLE;
+  }
+  if (dict_write_cstring(iter, cmd, get_device_at_index(index)->id) != DICT_OK) {
     return;
   }
   app_message_outbox_send();
@@ -200,6 +213,7 @@ static void app_message_init(void) {
 static void window_load(Window *window) {
 	switch_icons[0] = gbitmap_create_with_resource(RESOURCE_ID_SWITCH_OFF);
 	switch_icons[1] = gbitmap_create_with_resource(RESOURCE_ID_SWITCH_ON);
+	phrase_icon = gbitmap_create_with_resource(RESOURCE_ID_PHRASE);
 
   Layer *window_layer = window_get_root_layer(window);
   GRect window_frame = layer_get_frame(window_layer);
@@ -234,6 +248,7 @@ static void deinit(void) {
   menu_layer_destroy(menu_layer);
 	gbitmap_destroy(switch_icons[0]);
 	gbitmap_destroy(switch_icons[1]);
+	gbitmap_destroy(phrase_icon);
 }
 
 

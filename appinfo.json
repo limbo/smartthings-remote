@@ -1,35 +1,45 @@
 {
-  "uuid": "3c647382-ac08-4add-8f9a-e8db492535aa",
-  "shortName": "Smartthings Remote",
-  "longName": "Smartthings Remote",
-  "companyName": "Eran Globen",
-  "versionCode": 1,
-  "versionLabel": "1.0.0",
-  "watchapp": {
-    "watchface": false
-  },
-  "appKeys": {
-    "toggle": 0,
-    "refresh": 1
-  },
-  "resources": {
-    "media": [
-		{
-			"menuIcon": "true",
-			"type": "png",
-			"name": "IMAGE_MENU_ICON",
-			"file": "img/circle.png"
-		},
-		{
-      "type": "png",
-      "name": "SWITCH_OFF",
-      "file": "img/off.png"
+    "appKeys": {
+        "activate": 2,
+        "refresh": 1,
+        "toggle": 0
     },
-    {
-      "type": "png",
-      "name": "SWITCH_ON",
-      "file": "img/on.png"
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Eran Globen",
+    "longName": "Smartthings Remote",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/phrase.png",
+                "name": "PHRASE",
+                "type": "png"
+            },
+            {
+                "file": "images/on.png",
+                "name": "SWITCH_ON",
+                "type": "png"
+            },
+            {
+                "file": "images/off.png",
+                "name": "SWITCH_OFF",
+                "type": "png"
+            },
+            {
+                "file": "images/circle.png",
+                "menuIcon": true,
+                "name": "IMAGE_MENU_ICON",
+                "type": "png"
+            }
+        ]
+    },
+    "shortName": "Smartthings Remote",
+    "uuid": "3c647382-ac08-4add-8f9a-e8db492535aa",
+    "versionCode": 1,
+    "versionLabel": "1.1",
+    "watchapp": {
+        "watchface": false
     }
-		]
-  }
 }

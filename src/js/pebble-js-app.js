@@ -15,7 +15,7 @@ var pebbleSendQueue = {
 		this._doSend(msg);
 	},
 	_sendDone: function(e) {
-		if (this.queue.length == 0) {
+		if (this.queue.length === 0) {
 			this.queueFull = false;
 			return;
 		}
@@ -28,14 +28,20 @@ var pebbleSendQueue = {
 	},
 	_doSend: function(msg) {
 		this.inQueue = msg;
-		Pebble.sendAppMessage(msg, function(e) { pebbleSendQueue._sendDone(e) }, function(e) { pebbleSendQueue._sendFailed(e) });
+		Pebble.sendAppMessage(msg, 
+                          function(e) { 
+                            pebbleSendQueue._sendDone(e);
+                          }, 
+                          function(e) { 
+                            pebbleSendQueue._sendFailed(e); 
+                          });
 	}
 };
 
 function httpGet(url, params, cb) {
 	var p = '';
 	for (var param in params) {
-		if (p != '') {
+		if (p !== '') {
 			p += "&";
 		}
 		p += param + "=" + params[param];
@@ -54,20 +60,30 @@ function httpGet(url, params, cb) {
 			console.log ("HTTP GET Error: " + req.status);
 			Pebble.showSimpleNotificationOnPebble("HTTP Error", "Status code: " + req.status);
 		}
-	}
+	};
 	req.onerror = function(e) {
 		console.log ("HTTP GET Error: " + e.error);
 		Pebble.showSimpleNotificationOnPebble("HTTP Error", e.error);
-	}
+	};
 	req.send();
 }
 
 function parse_switch(s) {
 	var d = {
-		"0": 0, 
+		"0": 0, // Switch_Type
 		"1": s.id, 
 		"2": s.label || "Switch", 
 		"3": s.state == "on" ? 1 : 0
+		};
+	pebbleSendQueue.send(d);
+}
+
+function parse_phrase(p) {
+	var d = {
+		"0": 2, // Phrase_type
+		"1": p, 
+		"2": p, 
+		"3": 0
 		};
 	pebbleSendQueue.send(d);
 }
@@ -86,11 +102,15 @@ function gen_code()
 function fetch_devices() {
 	var token = window.localStorage.getItem('access_token');
 	httpGet(client.auth_uri, {'access_token': token}, function(response) {
-		data = JSON.parse(response);
+		var data = JSON.parse(response);
 		client.end_points[0] = data.switch_endpoint;
 		client.end_points[1] = data.lock_endpoint;
+		client.end_points[2] = data.phrase_endpoint;
 		for(var i in data.switches) {
 			parse_switch(data.switches[i]);
+		}
+		for(var j in data.phrases) {
+			parse_phrase(data.phrases[j]);
 		}
 	});	
 }
@@ -104,13 +124,13 @@ Pebble.addEventListener("ready",
 					var user_code = window.localStorage.getItem('user_code');
 					if (!user_code) {
 						// need to generate a code.
-						var user_code = gen_code();
+						user_code = gen_code();
 						window.localStorage.setItem('user_code', user_code);
 						Pebble.showSimpleNotificationOnPebble("Authentication", "This is your code: " + user_code);
 					} else {
 						// try to retrieve access_token
 						httpGet(client.auth_uri, {'user_code': user_code}, function(response) {
-							data = JSON.parse(response);
+							var data = JSON.parse(response);
 							console.log("access_token response: " + response);
 							if (data.access_token) {
 								window.localStorage.setItem('access_token', data.access_token);
@@ -128,18 +148,28 @@ Pebble.addEventListener("ready",
 Pebble.addEventListener("appmessage", function(e) {
 	var msg = e.payload;
 	console.log("incoming msg: " + JSON.stringify(msg));
-	if ('toggle' in msg) {
-		id = msg.toggle;
+  var id;
+  var uri;
+  var token;
+  if ('activate' in msg) {
+	  id = encodeURIComponent(msg.activate);
+		uri = client.end_points[2] + '/' + id;
+		token = window.localStorage.getItem('access_token');
+		httpGet(uri, {'access_token': token}, function(response) {
+				console.log("rcvd:" + response);
+    });    
+  } else if ('toggle' in msg) {
+    id = encodeURIComponent(msg.toggle);
 		uri = client.end_points[0] + '/' + id + '/toggle';
-		var token = window.localStorage.getItem('access_token');
+		token = window.localStorage.getItem('access_token');
 		httpGet(uri, {'access_token': token}, function(response) {
 			uri = client.end_points[0] + '/' + id;
 			httpGet(uri, {'access_token': token}, function(response) {
 				console.log("rcvd:" + response);
-				data = JSON.parse(response);
+				var data = JSON.parse(response);
 				parse_switch(data);
-		  });
-	  });
+      });
+    });
 	}
 });
 
